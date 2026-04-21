@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Quotation Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="wasm_exec.js"></script>
+    <style>
+        .tab-scroll::-webkit-scrollbar { height: 4px; }
+        .tab-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 p-6 font-sans">
+
+    <div class="max-w-5xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="bg-blue-600 px-6 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-white">Quotation Data Entry</h1>
+            <span id="wasm_status" class="text-xs font-semibold px-2 py-1 rounded bg-yellow-400 text-yellow-900">WASM Loading...</span>
+        </div>
+
+        <form id="quoteForm" class="p-6 space-y-8">
+            
+            <section class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <h2 class="text-lg font-semibold mb-4 text-blue-600 border-b pb-2">Presets (Project & Agent)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-xs text-gray-500 uppercase">Project Name</label><input type="text" id="project_name" value="Skyline Residences" class="w-full mt-1 p-2 border rounded bg-gray-200 text-gray-500 cursor-not-allowed" readonly></div>
+                    <div><label class="block text-xs text-gray-500 uppercase">Developer</label><input type="text" id="developer" value="Apex Development Group" class="w-full mt-1 p-2 border rounded bg-gray-200 text-gray-500 cursor-not-allowed" readonly></div>
+                    <div><label class="block text-xs text-gray-500 uppercase">Agent Name</label><input type="text" id="agent_name" value="Sarah Jenkins" class="w-full mt-1 p-2 border rounded bg-gray-200 text-gray-500 cursor-not-allowed" readonly></div>
+                    <div><label class="block text-xs text-gray-500 uppercase">Agent Phone</label><input type="text" id="agent_phone" value="+60123456789" class="w-full mt-1 p-2 border rounded bg-gray-200 text-gray-500 cursor-not-allowed" readonly></div>
+                    <div><label class="block text-xs text-gray-500 uppercase">Agent Email</label><input type="email" id="agent_email" value="sarah@apex.com" class="w-full mt-1 p-2 border rounded bg-gray-200 text-gray-500 cursor-not-allowed" readonly></div>
+                    <div><label class="block text-xs text-gray-500 uppercase">Agent Logo URL</label><input type="text" id="agent_logo" value="" class="w-full mt-1 p-2 border rounded bg-gray-200 text-gray-500 cursor-not-allowed" readonly></div>
+                    <div class="md:col-span-2"><label class="block text-xs text-gray-500 uppercase">Agent Signature URL</label><input type="text" id="agent_sig" value="" class="w-full mt-1 p-2 border rounded bg-gray-200 text-gray-500 cursor-not-allowed" readonly></div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">General Information</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium">Appointment Date</label><input type="date" id="appointment_date" required class="w-full mt-1 p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium">Quotation Validity</label><input type="date" id="quotation_validity" required class="w-full mt-1 p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium">Lead Name</label><input type="text" id="lead_name" required class="w-full mt-1 p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium">Lead Contact</label><input type="text" id="lead_contact" required class="w-full mt-1 p-2 border rounded"></div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Project Specifics</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div><label class="block text-sm font-medium">Tenure</label><input type="text" id="tenure" placeholder="e.g. Freehold" class="w-full mt-1 p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium">Unit No</label><input type="text" id="unit_no" class="w-full mt-1 p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium">Facing</label><input type="text" id="facing" class="w-full mt-1 p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium">Layout Type</label><input type="text" id="layout_type" class="w-full mt-1 p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium">Area (Sqft)</label><input type="number" id="area_sqft" class="w-full mt-1 p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium">SPA Price</label><input type="number" step="0.01" id="spa_price" class="w-full mt-1 p-2 border rounded"></div>
+                </div>
+            </section>
+
+            <section>
+                <h2 class="text-lg font-semibold mb-4 text-gray-700 border-b pb-2">Legal & Maintenance Fees</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div><label class="block text-sm font-medium">Maintenance Fee (PSF)</label><input type="number" step="0.01" id="maint_psf" class="w-full mt-1 p-2 border rounded"></div>
+                    <div><label class="block text-sm font-medium">Maintenance Fee (Total)</label><input type="number" step="0.01" id="maint_total" class="w-full mt-1 p-2 border rounded"></div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium">Included Fees</label>
+                        <div class="p-2 border rounded flex flex-wrap gap-2 items-center bg-white" id="included_tags_container">
+                            <input type="text" id="included_input" class="outline-none flex-grow min-w-[150px] p-1 text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium">Not Included Fees</label>
+                        <div class="p-2 border rounded flex flex-wrap gap-2 items-center bg-white" id="not_included_tags_container">
+                            <input type="text" id="not_included_input" class="outline-none flex-grow min-w-[150px] p-1 text-sm">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="border rounded-lg overflow-hidden border-blue-200">
+                <div class="bg-blue-50 px-4 py-3 flex items-center justify-between border-b border-blue-200">
+                    <h2 class="text-lg font-semibold text-blue-800">Quotation Options</h2>
+                    <button type="button" onclick="addOptionTab()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm rounded transition">+ Add Option</button>
+                </div>
+                <div class="flex overflow-x-auto bg-gray-100 tab-scroll" id="tabs_header"></div>
+                <div id="tabs_content" class="p-4 bg-white"></div>
+            </section>
+
+            <div class="pt-6">
+                <button type="submit" id="submit_btn" disabled class="w-full bg-gray-400 text-white font-bold py-3 px-4 rounded text-lg transition shadow-md cursor-not-allowed">
+                    Generate Quotation (Waiting for WASM)
+                </button>
+            </div>
+            
+            <pre id="output" class="hidden"></pre>
+            
+        </form>
+    </div>
+
+    <template id="option_template">
+        <div class="option-panel hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="md:col-span-4"><label class="block text-sm font-medium">Option Name</label><input type="text" data-field="option_name" class="w-full mt-1 p-2 border rounded font-semibold" value="New Option"></div>
+                <div><label class="block text-sm font-medium text-red-600">Rebate Amount</label><input type="number" step="0.01" data-field="rebate" class="w-full mt-1 p-2 border rounded"></div>
+                <div><label class="block text-sm font-medium text-green-600">Cashback</label><input type="number" step="0.01" data-field="cashback" class="w-full mt-1 p-2 border rounded"></div>
+                <div><label class="block text-sm font-medium">Down Payment</label><input type="number" step="0.01" data-field="down_payment" class="w-full mt-1 p-2 border rounded"></div>
+                <div><label class="block text-sm font-medium font-bold">Nett Price</label><input type="number" step="0.01" data-field="nett_price" class="w-full mt-1 p-2 border rounded border-gray-400 bg-gray-50"></div>
+                <div><label class="block text-sm font-medium">Loan Amount</label><input type="number" step="0.01" data-field="loan_amount" class="w-full mt-1 p-2 border rounded"></div>
+                <div><label class="block text-sm font-medium">Interest Rate (%)</label><input type="number" step="0.01" data-field="interest_rate" class="w-full mt-1 p-2 border rounded"></div>
+                <div><label class="block text-sm font-medium">Monthly Instalment</label><input type="number" step="0.01" data-field="monthly_instalment" class="w-full mt-1 p-2 border rounded"></div>
+            </div>
+            <hr class="border-gray-200">
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <h3 class="font-medium text-gray-700">Other Discounts</h3>
+                    <button type="button" class="add-discount-btn text-xs bg-gray-200 hover:bg-gray-300 px-2 py-1 rounded">Add Discount</button>
+                </div>
+                <div class="discounts-container space-y-2"></div>
+            </div>
+            <hr class="border-gray-200">
+            <div>
+                <h3 class="font-medium text-gray-700 mb-3">Furnishing Package</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <label class="flex items-center space-x-2"><input type="checkbox" data-furnishing="kitchen_cabinet" class="rounded"> <span class="text-sm">Kitchen Cabinet</span></label>
+                    <label class="flex items-center space-x-2"><input type="checkbox" data-furnishing="hood_and_hob" class="rounded"> <span class="text-sm">Hood & Hob</span></label>
+                    <label class="flex items-center space-x-2"><input type="checkbox" data-furnishing="fridge" class="rounded"> <span class="text-sm">Fridge</span></label>
+                    <label class="flex items-center space-x-2"><input type="checkbox" data-furnishing="toilet" class="rounded"> <span class="text-sm">Toilet Fittings</span></label>
+                    <label class="flex items-center space-x-2"><input type="checkbox" data-furnishing="heater" class="rounded"> <span class="text-sm">Water Heater</span></label>
+                    <label class="flex items-center space-x-2"><input type="checkbox" data-furnishing="shower_screen" class="rounded"> <span class="text-sm">Shower Screen</span></label>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div><label class="block text-xs text-gray-500">Washing Machine Qty</label><input type="number" data-furnishing="washing_machine_qty" class="w-full mt-1 p-1 border rounded text-sm" value="0"></div>
+                    <div><label class="block text-xs text-gray-500">Airconds Qty</label><input type="number" data-furnishing="airconds_qty" class="w-full mt-1 p-1 border rounded text-sm" value="0"></div>
+                    <div><label class="block text-xs text-gray-500">Wardrobe Qty</label><input type="number" data-furnishing="wardrobe_qty" class="w-full mt-1 p-1 border rounded text-sm" value="0"></div>
+                    <div><label class="block text-xs text-gray-500">Bed Set Qty</label><input type="number" data-furnishing="bed_set_qty" class="w-full mt-1 p-1 border rounded text-sm" value="0"></div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium">Additional Items</label>
+                    <div class="furnishing-tags-container p-2 border rounded flex flex-wrap gap-2 items-center bg-white">
+                        <input type="text" class="furnishing-tags-input outline-none flex-grow min-w-[150px] p-1 text-sm">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        // --- DATE INITIALIZATION (DATE ONLY) ---
+        const now = new Date();
+        const toDateOnly = (date) => date.toISOString().split('T')[0];
+
+        document.getElementById('appointment_date').value = toDateOnly(now);
+        
+        const validUntil = new Date(now);
+        validUntil.setDate(validUntil.getDate() + 30);
+        document.getElementById('quotation_validity').value = toDateOnly(validUntil);
+
+
+        // --- WASM INITIALIZATION ---
+        let wasmLoaded = false;
+        if (typeof Go !== 'undefined') {
+            const go = new Go();
+            WebAssembly.instantiateStreaming(fetch("main.wasm"), go.importObject).then((result) => {
+                go.run(result.instance);
+                wasmLoaded = true;
+                document.getElementById('wasm_status').textContent = 'WASM Ready';
+                document.getElementById('wasm_status').className = 'text-xs font-semibold px-2 py-1 rounded bg-green-400 text-green-900';
+                const submitBtn = document.getElementById('submit_btn');
+                submitBtn.disabled = false;
+                submitBtn.className = 'w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded text-lg transition shadow-md cursor-pointer';
+                submitBtn.textContent = 'Generate Quotation';
+            }).catch(err => {
+                console.error("WASM Load Error:", err);
+                document.getElementById('wasm_status').textContent = 'WASM Error';
+            });
+        }
+
+        // --- TAG INPUTS ---
+        const tagState = { included: [], not_included: [] };
+        function setupTagInput(inputId, containerId, stateKey) {
+            const input = document.getElementById(inputId);
+            const container = document.getElementById(containerId);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const val = input.value.trim();
+                    if (val && !tagState[stateKey].includes(val)) {
+                        tagState[stateKey].push(val);
+                        renderTags(container, input, tagState[stateKey]);
+                        input.value = '';
+                    }
+                }
+            });
+        }
+        function renderTags(container, inputElement, arrayRef) {
+            container.querySelectorAll('.pill').forEach(el => el.remove());
+            arrayRef.forEach((tag, index) => {
+                const pill = document.createElement('span');
+                pill.className = 'pill bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full flex items-center gap-1';
+                pill.innerHTML = `${tag} <button type="button" class="text-blue-500 font-bold ml-1">&times;</button>`;
+                pill.querySelector('button').onclick = () => {
+                    arrayRef.splice(index, 1);
+                    renderTags(container, inputElement, arrayRef);
+                };
+                container.insertBefore(pill, inputElement);
+            });
+        }
+        setupTagInput('included_input', 'included_tags_container', 'included');
+        setupTagInput('not_included_input', 'not_included_tags_container', 'not_included');
+
+        // --- TABS & OPTIONS ---
+        let optionCount = 0;
+        function addOptionTab() {
+            optionCount++;
+            const tabId = `option_${optionCount}`;
+            const tabBtn = document.createElement('button');
+            tabBtn.type = 'button';
+            tabBtn.className = `tab-btn px-4 py-2 text-sm font-medium border-r border-gray-200 hover:bg-gray-50 focus:outline-none text-gray-500`;
+            tabBtn.textContent = `Option ${optionCount}`;
+            tabBtn.id = `tab_btn_${tabId}`;
+            tabBtn.onclick = () => switchTab(tabId);
+            document.getElementById('tabs_header').appendChild(tabBtn);
+
+            const clone = document.getElementById('option_template').content.cloneNode(true);
+            const panel = clone.querySelector('.option-panel');
+            panel.id = `panel_${tabId}`;
+            const nameInput = panel.querySelector('[data-field="option_name"]');
+            nameInput.value = `Option ${optionCount}`;
+            nameInput.addEventListener('input', (e) => document.getElementById(`tab_btn_${tabId}`).textContent = e.target.value || `Option`);
+
+            const furnTagsContainer = panel.querySelector('.furnishing-tags-container');
+            const furnTagInput = panel.querySelector('.furnishing-tags-input');
+            let localFurnTags = [];
+            panel.dataset.furnishingTags = "[]"; 
+            furnTagInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const val = furnTagInput.value.trim();
+                    if (val && !localFurnTags.includes(val)) {
+                        localFurnTags.push(val);
+                        panel.dataset.furnishingTags = JSON.stringify(localFurnTags);
+                        renderTags(furnTagsContainer, furnTagInput, localFurnTags);
+                        furnTagInput.value = '';
+                    }
+                }
+            });
+
+            const discContainer = panel.querySelector('.discounts-container');
+            panel.querySelector('.add-discount-btn').onclick = () => {
+                const row = document.createElement('div');
+                row.className = 'flex gap-2 items-center discount-row';
+                row.innerHTML = `<input type="text" placeholder="Type" class="flex-grow p-1 border rounded text-sm disc-type"><input type="number" step="0.01" placeholder="Amount" class="w-32 p-1 border rounded text-sm disc-amount"><button type="button" class="text-red-500 px-2 font-bold">&times;</button>`;
+                row.querySelector('button').onclick = () => row.remove();
+                discContainer.appendChild(row);
+            };
+
+            document.getElementById('tabs_content').appendChild(panel);
+            switchTab(tabId);
+        }
+        function switchTab(tabId) {
+            document.querySelectorAll('.option-panel').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('bg-white', 'text-blue-600', 'border-t-2', 'border-t-blue-600', 'border-b-white', 'mb-[-1px]');
+                b.classList.add('text-gray-500');
+            });
+            document.getElementById(`panel_${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab_btn_${tabId}`);
+            activeBtn.classList.remove('text-gray-500');
+            activeBtn.classList.add('bg-white', 'text-blue-600', 'border-t-2', 'border-t-blue-600', 'border-b-white', 'mb-[-1px]');
+        }
+        addOptionTab();
+
+        // --- SUBMIT ---
+        document.getElementById('quoteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const getFloat = (id) => { const el = document.getElementById(id); return el ? (parseFloat(el.value) || 0) : 0; };
+            const getString = (id) => { const el = document.getElementById(id); return el ? el.value : ""; };
+
+            const optionsArray = [];
+            document.querySelectorAll('.option-panel').forEach(panel => {
+                const discounts = [];
+                panel.querySelectorAll('.discount-row').forEach(row => {
+                    const type = row.querySelector('.disc-type').value;
+                    const amount = parseFloat(row.querySelector('.disc-amount').value) || 0;
+                    if(type) discounts.push({ type, amount });
+                });
+                const getPanelFloat = (field) => { const el = panel.querySelector(`[data-field="${field}"]`); return el ? (parseFloat(el.value) || 0) : 0; };
+                const getPanelString = (field) => { const el = panel.querySelector(`[data-field="${field}"]`); return el ? el.value : ""; };
+
+                optionsArray.push({
+                    option_name: getPanelString('option_name'),
+                    rebate: getPanelFloat('rebate'),
+                    other_discounts: discounts,
+                    cashback: getPanelFloat('cashback'),
+                    down_payment: getPanelFloat('down_payment'),
+                    nett_price: getPanelFloat('nett_price'),
+                    loan_amount: getPanelFloat('loan_amount'),
+                    interest_rate: getPanelFloat('interest_rate'),
+                    monthly_instalment: getPanelFloat('monthly_instalment'),
+                    furnishing: {
+                        kitchen_cabinet: panel.querySelector('[data-furnishing="kitchen_cabinet"]').checked,
+                        hood_and_hob: panel.querySelector('[data-furnishing="hood_and_hob"]').checked,
+                        fridge: panel.querySelector('[data-furnishing="fridge"]').checked,
+                        toilet: panel.querySelector('[data-furnishing="toilet"]').checked,
+                        heater: panel.querySelector('[data-furnishing="heater"]').checked,
+                        shower_screen: panel.querySelector('[data-furnishing="shower_screen"]').checked,
+                        washing_machine_qty: parseInt(panel.querySelector('[data-furnishing="washing_machine_qty"]').value) || 0,
+                        airconds_qty: parseInt(panel.querySelector('[data-furnishing="airconds_qty"]').value) || 0,
+                        wardrobe_qty: parseInt(panel.querySelector('[data-furnishing="wardrobe_qty"]').value) || 0,
+                        bed_set_qty: parseInt(panel.querySelector('[data-furnishing="bed_set_qty"]').value) || 0,
+                        additional_items: JSON.parse(panel.dataset.furnishingTags || "[]")
+                    }
+                });
+            });
+
+            // ENFORCE ISO TIMESTAMP FOR GO BACKEND COMPATIBILITY
+            const payload = {
+                appointment_date: document.getElementById('appointment_date').value ? new Date(document.getElementById('appointment_date').value).toISOString() : "",
+                quotation_validity: document.getElementById('quotation_validity').value ? new Date(document.getElementById('quotation_validity').value).toISOString() : "",
+                lead_info: { name: getString('lead_name'), contact: getString('lead_contact') },
+                project_details: {
+                    project_name: getString('project_name'), developer: getString('developer'), tenure: getString('tenure'),
+                    unit_no: getString('unit_no'), facing: getString('facing'), layout_type: getString('layout_type'),
+                    area_sqft: parseInt(document.getElementById('area_sqft').value) || 0, spa_price: getFloat('spa_price')
+                },
+                options: optionsArray,
+                legal_and_fees: { maintenance_fee_psf: getFloat('maint_psf'), maintenance_fee_total: getFloat('maint_total'), included: tagState.included, not_included: tagState.not_included },
+                agent: { name: getString('agent_name'), phone_number: getString('agent_phone'), email: getString('agent_email'), signature_url: getString('agent_sig'), logo_url: getString('agent_logo') }
+            };
+
+            try {
+                if (typeof window.generatePDF === 'function') {
+                    document.getElementById('output').textContent = "Generating...";
+                    const wasmResponse = await window.generatePDF(JSON.stringify(payload));
+                    if (wasmResponse instanceof Uint8Array || (typeof wasmResponse === 'string' && wasmResponse.startsWith('JVBERi'))) {
+                        let blob;
+                        if (wasmResponse instanceof Uint8Array) blob = new Blob([wasmResponse], { type: 'application/pdf' });
+                        else {
+                            const bChars = atob(wasmResponse);
+                            const bNums = new Array(bChars.length);
+                            for (let i = 0; i < bChars.length; i++) bNums[i] = bChars.charCodeAt(i);
+                            blob = new Blob([new Uint8Array(bNums)], { type: 'application/pdf' });
+                        }
+                        window.open(URL.createObjectURL(blob), '_blank');
+                        document.getElementById('output').textContent = "PDF Ready.";
+                    } else document.getElementById('output').textContent = "Unexpected response from WASM.";
+                } else document.getElementById('output').textContent = "WASM function not found.";
+            } catch (err) { document.getElementById('output').textContent = "Error: " + err.message; }
+        });
+
+        document.getElementById('quoteForm').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') e.preventDefault(); });
+    </script>
+</body>
+</html>
