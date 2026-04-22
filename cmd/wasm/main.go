@@ -5,20 +5,20 @@ import (
 	"syscall/js"
 
 	"github.com/justinhjy1004/goquote/internal/document"
-	"github.com/justinhjy1004/goquote/internal/models"
+	"github.com/justinhjy1004/goquote/internal/parser"
 )
 
 // generatePDFWrapper acts as the bridge between JS and Go
 func generatePDFWrapper(this js.Value, args []js.Value) any {
 
-	quote, err := models.ParseJSON(this, args)
+	quote, err := parser.ParseJSON(this, args)
 
 	if err != nil {
 		fmt.Println(err)
 		return nil
 	}
 
-	buffer, err := document.GenerateQuotationPDF(quote)
+	buffer, err := document.GeneratePDFByteString(quote)
 
 	if err != nil {
 		fmt.Println(err)

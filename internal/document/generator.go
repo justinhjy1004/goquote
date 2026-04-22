@@ -1,81 +1,81 @@
 package document
 
 import (
-	"encoding/base64"
 	"fmt"
-	"io"
-	"net/http"
 	"strings"
 
-	"github.com/johnfercher/maroto/pkg/color"
 	"github.com/johnfercher/maroto/pkg/consts"
 	"github.com/johnfercher/maroto/pkg/pdf"
 	"github.com/johnfercher/maroto/pkg/props"
 	"github.com/justinhjy1004/goquote/internal/models"
 )
 
+func GeneratePDFByteString(quote models.PropertyQuotation) ([]byte, error) {
+
+	m := generatePDFMaroto(quote)
+
+	buffer, err := m.Output()
+
+	if err != nil {
+		return nil, fmt.Errorf("could not generate PDF buffer: %v", err)
+	}
+
+	// 3. Return the bytes from the buffer
+	return buffer.Bytes(), nil
+
+}
+
+func GeneratePDFDocument(quote models.PropertyQuotation, output string) error {
+
+	m := generatePDFMaroto(quote)
+
+	// This replaces the need for os.Create or os.Write
+	err := m.OutputFileAndClose("output.pdf")
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+type standardTextProperty struct {
+	headerProp  props.Text
+	sectionProp props.Text
+	labelProp   props.Text
+	valueProp   props.Text
+}
+
 // GenerateQuotationPDF takes a PropertyQuotation and outputs a PDF file
-func GenerateQuotationPDF(quote models.PropertyQuotation) ([]byte, error) {
-	// Initialize Maroto (Portrait, A4)
+func generatePDFMaroto(quote models.PropertyQuotation) pdf.Maroto {
+
+	// Page Outline and Dimension
 	m := pdf.NewMaroto(consts.Portrait, consts.A4)
 	m.SetPageMargins(10, 15, 10)
 
-	// Styles
+	// Text Styles
 	headerProp := props.Text{Style: consts.Bold, Size: 14, Align: consts.Center}
 	sectionProp := props.Text{Style: consts.Bold, Size: 11, Color: getDarkGray()}
 	labelProp := props.Text{Style: consts.Bold, Size: 9}
 	valueProp := props.Text{Style: consts.Normal, Size: 9}
 
-	// --- HEADER (Logo & Title) ---
-	m.Row(20, func() {
-		m.Col(3, func() {
-			// Fetch logo from URL and embed as Base64
-			if logoB64, err := urlToBase64(quote.Agent.Logo); err == nil && logoB64 != "" {
-				m.Base64Image(logoB64, consts.Png, props.Rect{Center: true, Percent: 100})
-			} else {
-				m.Text("LOGO", headerProp)
-			}
-		})
-		m.ColSpace(1)
-		m.Col(8, func() {
-			m.Text("PROPERTY QUOTATION", props.Text{Top: 5, Style: consts.Bold, Size: 18, Align: consts.Right})
-			m.Text(fmt.Sprintf("Date: %s | Valid until: %s", quote.AppointmentDate.Format("02 Jan 2006"), quote.QuotationValidity.Format("02 Jan 2006")), props.Text{Top: 12, Style: consts.Normal, Size: 9, Align: consts.Right})
-		})
-	})
+	textStyles := standardTextProperty{
+		headerProp:  headerProp,
+		sectionProp: sectionProp,
+		labelProp:   labelProp,
+		valueProp:   valueProp,
+	}
+
+	// Generate Header of Quote
+	generateHeader(m, quote, textStyles)
+
 	m.Line(2)
 
-	m.Row(5, func() {
-		m.Col(3, func() { m.Text("Client Name:", labelProp) })
-		m.Col(3, func() { m.Text(quote.LeadInfo.Name, valueProp) })
-		m.Col(3, func() { m.Text("Contact:", labelProp) })
-		m.Col(3, func() { m.Text(quote.LeadInfo.Contact, valueProp) })
-	})
+	// Client Information
+	generateClientDetails(m, quote, textStyles)
 
-	// --- CLIENT & PROJECT DETAILS ---
-	buildSectionTitle(m, "PROPERTY DETAILS", sectionProp)
-
-	m.Row(5, func() {
-		m.Col(3, func() { m.Text("Project Name:", labelProp) })
-		m.Col(3, func() { m.Text(quote.ProjectDetails.ProjectName, valueProp) })
-		m.Col(3, func() { m.Text("Developer:", labelProp) })
-		m.Col(3, func() { m.Text(quote.ProjectDetails.Developer, valueProp) })
-	})
-
-	m.Row(5, func() {
-		m.Col(3, func() { m.Text("Unit No:", labelProp) })
-		m.Col(3, func() { m.Text(quote.ProjectDetails.UnitNo, valueProp) })
-		m.Col(3, func() { m.Text("Tenure:", labelProp) })
-		m.Col(3, func() { m.Text(quote.ProjectDetails.Tenure, valueProp) })
-	})
-
-	m.Row(5, func() {
-		m.Col(3, func() { m.Text("Layout & Area:", labelProp) })
-		m.Col(3, func() {
-			m.Text(fmt.Sprintf("%s (%d sqft)", quote.ProjectDetails.LayoutType, quote.ProjectDetails.AreaSqft), valueProp)
-		})
-		m.Col(3, func() { m.Text("SPA Price:", labelProp) })
-		m.Col(3, func() { m.Text(fmt.Sprintf("RM %.2f", quote.ProjectDetails.SPAPrice), valueProp) })
-	})
+	// Property Information
+	generatePropertyDetails(m, quote, textStyles)
 
 	// --- OPTIONS ---
 	for i, opt := range quote.Options {
@@ -120,7 +120,7 @@ func GenerateQuotationPDF(quote models.PropertyQuotation) ([]byte, error) {
 
 		// --- FURNISHING CHECKLIST (Grid Layout) ---
 		m.Row(6, func() {
-			m.Col(12, func() { m.Text("Furnishing Checklist:", props.Text{Style: consts.BoldItalic, Size: 9}) })
+			m.Col(12, func() { m.Text("Furnishing Checklist:", props.Text{Style: consts.Bold, Size: 9}) })
 		})
 
 		// Row 1: Booleans
@@ -151,7 +151,7 @@ func GenerateQuotationPDF(quote models.PropertyQuotation) ([]byte, error) {
 
 		// Row 5+: Iterate over the free-text "Additional" items dynamically
 		if len(opt.Furnishing.Additional) > 0 {
-			m.Row(3, func() {}) // spacer
+			m.Row(5, func() { m.Text("Additional Furnishing:", props.Text{Style: consts.Bold, Size: 9}) }) // spacer
 
 			// Chunk the additional items into groups of 3 for the columns
 			for i := 0; i < len(opt.Furnishing.Additional); i += 3 {
@@ -190,12 +190,36 @@ func GenerateQuotationPDF(quote models.PropertyQuotation) ([]byte, error) {
 		})
 	})
 
+	// 1. INCLUDED SECTION
+	// Header
 	m.Row(10, func() {
-		m.Col(2, func() { m.Text("Included:", labelProp) })
-		m.Col(4, func() { m.Text(strings.Join(quote.LegalAndFees.Included, ", "), valueProp) })
-		m.Col(2, func() { m.Text("Not Included:", labelProp) })
-		m.Col(4, func() { m.Text(strings.Join(quote.LegalAndFees.NotIncluded, ", "), valueProp) })
+		m.Col(12, func() { m.Text("Included:", labelProp) })
 	})
+
+	// Bulleted List
+	for _, item := range quote.LegalAndFees.Included {
+		m.Row(6, func() {
+			m.Col(1, func() { m.Text("-", valueProp) })   // The bullet
+			m.Col(11, func() { m.Text(item, valueProp) }) // The text
+		})
+	}
+
+	// Add a little vertical spacing between the two sections
+	m.Row(5, func() {})
+
+	// 2. NOT INCLUDED SECTION
+	// Header
+	m.Row(10, func() {
+		m.Col(12, func() { m.Text("Not Included:", labelProp) })
+	})
+
+	// Bulleted List
+	for _, item := range quote.LegalAndFees.NotIncluded {
+		m.Row(6, func() {
+			m.Col(1, func() { m.Text("-", valueProp) })   // The bullet
+			m.Col(11, func() { m.Text(item, valueProp) }) // The text
+		})
+	}
 
 	// --- AGENT SIGNATURE (FOOTER) ---
 	m.Row(30, func() {
@@ -211,57 +235,5 @@ func GenerateQuotationPDF(quote models.PropertyQuotation) ([]byte, error) {
 		})
 	})
 
-	buffer, err := m.Output()
-	if err != nil {
-		return nil, fmt.Errorf("could not generate PDF buffer: %v", err)
-	}
-
-	// 3. Return the bytes from the buffer
-	return buffer.Bytes(), nil
-}
-
-// --- HELPER FUNCTIONS ---
-
-func buildSectionTitle(m pdf.Maroto, title string, prop props.Text) {
-	m.Row(8, func() {
-		m.Col(12, func() {
-			m.Text(title, prop)
-		})
-	})
-	m.Row(2, func() {}) // spacer
-}
-
-func getDarkGray() color.Color {
-	return color.Color{Red: 50, Green: 50, Blue: 50}
-}
-
-// urlToBase64 fetches an image URL and converts it to a base64 string
-func urlToBase64(imageURL string) (string, error) {
-	if imageURL == "" {
-		return "", nil
-	}
-
-	resp, err := http.Get(imageURL)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	bytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	// Determine mime type if necessary, but returning pure base64
-	// (Maroto usually requires just the base64 characters, not the "data:image/png;base64," prefix)
-	b64 := base64.StdEncoding.EncodeToString(bytes)
-	return b64, nil
-}
-
-// checkBox returns a marked or empty box for boolean values
-func checkBox(b bool) string {
-	if b {
-		return "[X]"
-	}
-	return "[  ]"
+	return m
 }

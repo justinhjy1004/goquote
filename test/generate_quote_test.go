@@ -94,7 +94,7 @@ func TestGenerateQuotationPDF(t *testing.T) {
 	outputPath := "sample_quotation_test.pdf"
 
 	// 3. Call the generation function
-	quote, err := document.GenerateQuotationPDF(quote)
+	err := document.GeneratePDFDocument(quote, outputPath)
 
 	// 4. Check for errors
 	if err != nil {
