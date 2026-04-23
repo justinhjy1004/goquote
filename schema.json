@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/justinhjy1004/goquote/internal/models/property-quotation",
+  "$ref": "#/$defs/PropertyQuotation",
+  "$defs": {
+    "Agent": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "phone_number": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "signature_url": {
+          "type": "string"
+        },
+        "logo_url": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name",
+        "phone_number",
+        "email",
+        "signature_url",
+        "logo_url"
+      ]
+    },
+    "Discount": {
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "type",
+        "amount"
+      ]
+    },
+    "Furnishing": {
+      "properties": {
+        "kitchen_cabinet": {
+          "type": "boolean"
+        },
+        "hood_and_hob": {
+          "type": "boolean"
+        },
+        "fridge": {
+          "type": "boolean"
+        },
+        "washing_machine_qty": {
+          "type": "integer"
+        },
+        "airconds_qty": {
+          "type": "integer"
+        },
+        "toilet": {
+          "type": "boolean"
+        },
+        "heater": {
+          "type": "boolean"
+        },
+        "shower_screen": {
+          "type": "boolean"
+        },
+        "wardrobe_qty": {
+          "type": "integer"
+        },
+        "bed_set_qty": {
+          "type": "integer"
+        },
+        "additional_items": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "kitchen_cabinet",
+        "hood_and_hob",
+        "fridge",
+        "washing_machine_qty",
+        "airconds_qty",
+        "toilet",
+        "heater",
+        "shower_screen",
+        "wardrobe_qty",
+        "bed_set_qty",
+        "additional_items"
+      ]
+    },
+    "Lead": {
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "contact": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "name",
+        "contact"
+      ]
+    },
+    "LegalFees": {
+      "properties": {
+        "maintenance_fee_psf": {
+          "type": "number"
+        },
+        "maintenance_fee_total": {
+          "type": "number"
+        },
+        "included": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "not_included": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "maintenance_fee_psf",
+        "maintenance_fee_total",
+        "included",
+        "not_included"
+      ]
+    },
+    "Option": {
+      "properties": {
+        "option_name": {
+          "type": "string"
+        },
+        "rebate": {
+          "type": "number"
+        },
+        "other_discounts": {
+          "items": {
+            "$ref": "#/$defs/Discount"
+          },
+          "type": "array"
+        },
+        "cashback": {
+          "type": "number"
+        },
+        "down_payment": {
+          "type": "number"
+        },
+        "nett_price": {
+          "type": "number"
+        },
+        "loan_amount": {
+          "type": "number"
+        },
+        "interest_rate": {
+          "type": "number"
+        },
+        "monthly_instalment": {
+          "type": "number"
+        },
+        "furnishing": {
+          "$ref": "#/$defs/Furnishing"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "option_name",
+        "rebate",
+        "other_discounts",
+        "cashback",
+        "down_payment",
+        "nett_price",
+        "loan_amount",
+        "interest_rate",
+        "monthly_instalment",
+        "furnishing"
+      ]
+    },
+    "Project": {
+      "properties": {
+        "project_name": {
+          "type": "string"
+        },
+        "developer": {
+          "type": "string"
+        },
+        "tenure": {
+          "type": "string"
+        },
+        "unit_no": {
+          "type": "string"
+        },
+        "facing": {
+          "type": "string"
+        },
+        "layout_type": {
+          "type": "string"
+        },
+        "area_sqft": {
+          "type": "integer"
+        },
+        "spa_price": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "project_name",
+        "developer",
+        "tenure",
+        "unit_no",
+        "facing",
+        "layout_type",
+        "area_sqft",
+        "spa_price"
+      ]
+    },
+    "PropertyQuotation": {
+      "properties": {
+        "appointment_date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "quotation_validity": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "lead_info": {
+          "$ref": "#/$defs/Lead"
+        },
+        "project_details": {
+          "$ref": "#/$defs/Project"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/Option"
+          },
+          "type": "array"
+        },
+        "legal_and_fees": {
+          "$ref": "#/$defs/LegalFees"
+        },
+        "agent": {
+          "$ref": "#/$defs/Agent"
+        }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "appointment_date",
+        "quotation_validity",
+        "lead_info",
+        "project_details",
+        "options",
+        "legal_and_fees",
+        "agent"
+      ]
+    }
+  }
+}

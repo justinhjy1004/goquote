@@ -80,6 +80,7 @@ func generatePDFMaroto(quote models.PropertyQuotation) pdf.Maroto {
 	// --- OPTIONS ---
 	for i, opt := range quote.Options {
 		m.Row(5, func() {}) // spacer
+
 		buildSectionTitle(m, fmt.Sprintf("OPTION %d: %s", i+1, strings.ToUpper(opt.OptionName)), sectionProp)
 
 		m.Row(5, func() {
