@@ -1,25 +1,28 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
-	"github.com/invopop/jsonschema"
+	"github.com/hypersequent/zen"
 	"github.com/justinhjy1004/goquote/internal/models"
 )
 
 func main() {
-	// Reflect the struct to generate the OpenAPI-like JSON Schema
-	schema := jsonschema.Reflect(&models.PropertyQuotation{})
-	schemaJSON, err := json.MarshalIndent(schema, "", "  ")
+	// 1. Generate the Zod schema string
+	// Note: zen.StructToZodSchema returns a string, not a struct/map
+	schema := zen.StructToZodSchema(models.PropertyQuotation{})
+
+	// 2. Format the output string for TypeScript
+	// We add 'export const' so you can import it in your TS files
+	content := fmt.Sprintf("import { z } from 'zod';\n\n%s;", schema)
+
+	// 3. Write directly to a .ts file
+	err := os.WriteFile("schema.ts", []byte(content), 0644)
 	if err != nil {
-		fmt.Println("Error generating schema:", err)
+		fmt.Printf("Error writing schema file: %v\n", err)
 		os.Exit(1)
 	}
-	err = os.WriteFile("schema.json", schemaJSON, 0644)
-	if err != nil {
-		fmt.Println("Error writing schema file:", err)
-		os.Exit(1)
-	}
+
+	fmt.Println("Successfully generated property_quotation.gen.ts")
 }
