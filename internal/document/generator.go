@@ -85,37 +85,39 @@ func generatePDFMaroto(quote models.PropertyQuotation) pdf.Maroto {
 
 		m.Row(5, func() {
 			m.Col(3, func() { m.Text("Rebate:", labelProp) })
-			m.Col(3, func() { m.Text(fmt.Sprintf("RM %.2f", opt.Rebate), valueProp) })
+			m.Col(3, func() { m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.Rebate)), valueProp) })
 			m.Col(3, func() { m.Text("Cashback:", labelProp) })
-			m.Col(3, func() { m.Text(fmt.Sprintf("RM %.2f", opt.Cashback), valueProp) })
+			m.Col(3, func() { m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.Cashback)), valueProp) })
 		})
 
 		// Add custom discounts
 		for _, disc := range opt.Discounts {
 			m.Row(5, func() {
 				m.Col(3, func() { m.Text(disc.Type+":", labelProp) })
-				m.Col(9, func() { m.Text(fmt.Sprintf("RM %.2f", disc.Amount), valueProp) })
+				m.Col(9, func() { m.Text(fmt.Sprintf("RM %s", formatCurrency(disc.Amount)), valueProp) })
 			})
 		}
 
 		m.Row(5, func() {
 			m.Col(3, func() { m.Text("Nett Price:", labelProp) })
-			m.Col(3, func() { m.Text(fmt.Sprintf("RM %.2f", opt.NettPrice), props.Text{Style: consts.Bold, Size: 9}) })
+			m.Col(3, func() {
+				m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.NettPrice)), props.Text{Style: consts.Bold, Size: 9})
+			})
 			m.Col(3, func() { m.Text("Down Payment:", labelProp) })
-			m.Col(3, func() { m.Text(fmt.Sprintf("RM %.2f", opt.DownPayment), valueProp) })
+			m.Col(3, func() { m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.DownPayment)), valueProp) })
 		})
 
 		m.Row(5, func() {
 			m.Col(3, func() { m.Text("Loan Amount:", labelProp) })
-			m.Col(3, func() { m.Text(fmt.Sprintf("RM %.2f", opt.LoanAmount), valueProp) })
+			m.Col(3, func() { m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.LoanAmount)), valueProp) })
 			m.Col(3, func() { m.Text("Interest Rate:", labelProp) })
 			m.Col(3, func() { m.Text(fmt.Sprintf("%.2f%%", opt.InterestRate), valueProp) })
 		})
 
 		m.Row(5, func() {
-			m.Col(3, func() { m.Text("Est. Monthly Instalment:", props.Text{Style: consts.BoldItalic, Size: 9}) })
+			m.Col(3, func() { m.Text("Est. Monthly Instalment:", labelProp) })
 			m.Col(9, func() {
-				m.Text(fmt.Sprintf("RM %.2f", opt.MonthlyInstalment), props.Text{Style: consts.Bold, Size: 10})
+				m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.MonthlyInstalment)), valueProp)
 			})
 		})
 
@@ -184,14 +186,16 @@ func generatePDFMaroto(quote models.PropertyQuotation) pdf.Maroto {
 
 	m.Row(5, func() {
 		m.Col(4, func() {
-			m.Text(fmt.Sprintf("Maintenance Fee: RM %.2f/psf", quote.LegalAndFees.MaintenanceFeePSF), valueProp)
+			m.Text(fmt.Sprintf("Maintenance Fee: RM %s/psf", formatCurrency(quote.LegalAndFees.MaintenanceFeePSF)), valueProp)
 		})
 		m.Col(8, func() {
-			m.Text(fmt.Sprintf("Total Estimated: RM %.2f/month", quote.LegalAndFees.MaintenanceFeeTotal), valueProp)
+			m.Text(fmt.Sprintf("Total Estimated: RM %s/month", formatCurrency(quote.LegalAndFees.MaintenanceFeeTotal)), valueProp)
 		})
 	})
 
-	// 1. INCLUDED SECTION
+	m.Row(2, func() {})
+
+	// 1. NCLUDED SECTION
 	// Header
 	m.Row(10, func() {
 		m.Col(12, func() { m.Text("Included:", labelProp) })

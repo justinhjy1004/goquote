@@ -88,12 +88,12 @@ func generatePropertyDetails(m pdf.Maroto, quote models.PropertyQuotation, style
 
 	m.Row(5, func() {
 		m.Col(3, func() { m.Text("Facing:", styles.labelProp) })
-		m.Col(3, func() { m.Text(quote.ProjectDetails.Facing, styles.valueProp) })
+		m.Col(3, func() { m.Text(fmt.Sprintf("RM %s", formatCurrency(quote.ProjectDetails.SPAPrice)), styles.valueProp) })
 	})
 
 	m.Row(5, func() {
 		m.Col(3, func() { m.Text("Area Sqft:", styles.labelProp) })
-		m.Col(3, func() { m.Text(fmt.Sprintf("%d sqft", quote.ProjectDetails.AreaSqft), styles.valueProp) })
+		m.Col(3, func() { m.Text(fmt.Sprintf("%s sqft", formatInteger(quote.ProjectDetails.AreaSqft)), styles.valueProp) })
 	})
 
 	m.Row(1, func() {})
