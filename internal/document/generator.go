@@ -30,7 +30,7 @@ func GeneratePDFDocument(quote models.PropertyQuotation, output string) error {
 	m := generatePDFMaroto(quote)
 
 	// This replaces the need for os.Create or os.Write
-	err := m.OutputFileAndClose("output.pdf")
+	err := m.OutputFileAndClose(output)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,9 @@ func generatePDFMaroto(quote models.PropertyQuotation) pdf.Maroto {
 	for i, opt := range quote.Options {
 		m.Row(5, func() {}) // spacer
 
-		buildSectionTitle(m, fmt.Sprintf("OPTION %d: %s", i+1, strings.ToUpper(opt.OptionName)), sectionProp)
+		if len(quote.Options) > 1 {
+			buildSectionTitle(m, fmt.Sprintf("OPTION %d: %s", i+1, strings.ToUpper(opt.OptionName)), sectionProp)
+		}
 
 		m.Row(5, func() {
 			m.Col(3, func() { m.Text("Rebate:", labelProp) })

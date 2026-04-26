@@ -8,11 +8,11 @@ import (
 	"github.com/justinhjy1004/goquote/internal/models"
 )
 
-func TestGenerateQuotationPDF(t *testing.T) {
-	// 1. Create realistic dummy data
+// Test for multiple options (Original Case)
+func TestGenerateQuotationMultiOptionPDF(t *testing.T) {
 	quote := models.PropertyQuotation{
 		AppointmentDate:   time.Now(),
-		QuotationValidity: time.Now().AddDate(0, 1, 0), // Valid for 1 month
+		QuotationValidity: time.Now().AddDate(0, 1, 0),
 		LeadInfo: models.Lead{
 			Name:    "Ahmad Albab",
 			Contact: "+60 12-345 6789",
@@ -32,9 +32,9 @@ func TestGenerateQuotationPDF(t *testing.T) {
 				OptionName:        "Standard Rebate",
 				Rebate:            20000.00,
 				Cashback:          5000.00,
-				DownPayment:       75000.00, // 10%
+				DownPayment:       75000.00,
 				NettPrice:         725000.00,
-				LoanAmount:        675000.00, // 90%
+				LoanAmount:        675000.00,
 				InterestRate:      4.25,
 				MonthlyInstalment: 3320.50,
 				Discounts: []models.Discount{
@@ -84,22 +84,74 @@ func TestGenerateQuotationPDF(t *testing.T) {
 			Name:        "Sarah Lim",
 			PhoneNumber: "+60 19-876 5432",
 			Email:       "sarah.lim@agency.com",
-			// Using dummy image URLs that return safe placeholder images so the test doesn't crash
-			Logo:      "https://dummyimage.com/150x50/000/fff&text=AGENCY+LOGO",
-			Signature: "https://dummyimage.com/200x80/ffffff/000000&text=Sarah+Lim+Signature",
+			Logo:        "https://dummyimage.com/150x50/000/fff&text=AGENCY+LOGO",
+			Signature:   "https://dummyimage.com/200x80/ffffff/000000&text=Sarah+Lim+Signature",
 		},
 	}
 
-	// 2. Define output path
-	outputPath := "sample_quotation_test.pdf"
-
-	// 3. Call the generation function
+	outputPath := "sample_quotation_multi_option.pdf"
 	err := document.GeneratePDFDocument(quote, outputPath)
-
-	// 4. Check for errors
 	if err != nil {
 		t.Fatalf("Expected no error, but got: %v", err)
 	}
+	t.Logf("Generated Multi-Option PDF: %s", outputPath)
+}
 
-	t.Logf("Successfully generated test PDF at: %s", outputPath)
+// Test for a single option (New Case)
+func TestGenerateQuotationSingleOptionPDF(t *testing.T) {
+	quote := models.PropertyQuotation{
+		AppointmentDate:   time.Now(),
+		QuotationValidity: time.Now().AddDate(0, 0, 14), // Valid for 14 days
+		LeadInfo: models.Lead{
+			Name:    "John Doe",
+			Contact: "+60 11-222 3333",
+		},
+		ProjectDetails: models.Project{
+			ProjectName: "Urban Suites",
+			Developer:   "City Dev Group",
+			Tenure:      "Leasehold",
+			UnitNo:      "B-10-10",
+			Facing:      "Pool View",
+			LayoutType:  "Studio",
+			AreaSqft:    550,
+			SPAPrice:    450000.00,
+		},
+		Options: []models.Option{
+			{
+				OptionName:        "Essential Entry Pack",
+				Rebate:            45000.00,
+				Cashback:          0.00,
+				DownPayment:       0.00, // 0 Downpayment promo
+				NettPrice:         405000.00,
+				LoanAmount:        405000.00,
+				InterestRate:      4.10,
+				MonthlyInstalment: 1850.20,
+				Furnishing: models.Furnishing{
+					KitchenCabinet: true,
+					Airconds:       1,
+					Heater:         true,
+				},
+			},
+		},
+		LegalAndFees: models.LegalFees{
+			MaintenanceFeePSF:   0.40,
+			MaintenanceFeeTotal: 220.00,
+			Included:            []string{"SPA Legal Fee"},
+			NotIncluded:         []string{"Loan Stamp Duty", "MOT"},
+		},
+		Agent: models.Agent{
+			Name:        "Michael Tan",
+			PhoneNumber: "+60 12-999 8888",
+			Email:       "michael.tan@proptech.com",
+			Logo:        "https://dummyimage.com/150x50/222/eee&text=PROPTECH",
+			Signature:   "https://dummyimage.com/200x80/ffffff/000000&text=MT+Signature",
+		},
+	}
+
+	outputPath := "sample_quotation_single_option.pdf"
+	err := document.GeneratePDFDocument(quote, outputPath)
+	if err != nil {
+		t.Fatalf("Expected no error, but got: %v", err)
+	}
+	t.Logf("Generated Single-Option PDF: %s", outputPath)
 }
