@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/johnfercher/maroto/pkg/color"
 	"github.com/johnfercher/maroto/pkg/consts"
 	"github.com/johnfercher/maroto/pkg/pdf"
 	"github.com/johnfercher/maroto/pkg/props"
@@ -77,6 +78,8 @@ func generatePDFMaroto(quote models.PropertyQuotation) pdf.Maroto {
 	// Property Information
 	generatePropertyDetails(m, quote, textStyles)
 
+	m.Line(2)
+
 	// --- OPTIONS ---
 	for i, opt := range quote.Options {
 		m.Row(5, func() {}) // spacer
@@ -86,73 +89,144 @@ func generatePDFMaroto(quote models.PropertyQuotation) pdf.Maroto {
 		}
 
 		m.Row(5, func() {
-			m.Col(3, func() { m.Text("Rebate:", labelProp) })
+			m.Col(3, func() { m.Text("Rebate (%):", labelProp) })
+			m.Col(3, func() { m.Text(fmt.Sprintf("%.2f%%", opt.RebatePercentage), valueProp) })
+			m.Col(3, func() { m.Text("Rebate Amount:", labelProp) })
 			m.Col(3, func() { m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.Rebate)), valueProp) })
-			m.Col(3, func() { m.Text("Cashback:", labelProp) })
-			m.Col(3, func() { m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.Cashback)), valueProp) })
 		})
 
-		// Add custom discounts
-		for _, disc := range opt.Discounts {
+		m.Row(5, func() {
+			m.Col(3, func() { m.Text("Cashback:", labelProp) })
+			m.Col(3, func() { m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.Cashback)), valueProp) })
+
+			m.Col(3, func() { m.Text("Cashback Type:", labelProp) })
+			m.Col(3, func() { m.Text(fmt.Sprintf("%s", opt.CashbackType), valueProp) })
+		})
+
+		if len(opt.Discounts) > 0 {
 			m.Row(5, func() {
-				m.Col(3, func() { m.Text(disc.Type+":", labelProp) })
-				m.Col(9, func() { m.Text(fmt.Sprintf("RM %s", formatCurrency(disc.Amount)), valueProp) })
+				m.Col(12, func() { m.Text("Additional Discounts:", props.Text{Style: consts.Bold, Size: 9}) })
 			})
+
+			// Add custom discounts
+			for _, disc := range opt.Discounts {
+				m.Row(5, func() {
+					m.Col(3, func() { m.Text("- "+disc.Type, labelProp) })
+					m.Col(9, func() { m.Text(fmt.Sprintf("%.2f%%", disc.Percentage), valueProp) })
+				})
+			}
 		}
 
 		m.Row(5, func() {
-			m.Col(3, func() { m.Text("Nett Price:", labelProp) })
 			m.Col(3, func() {
-				m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.NettPrice)), props.Text{Style: consts.Bold, Size: 9})
+				m.Text("Nett Price:", props.Text{Style: consts.Bold, Size: 9.5, Color: color.Color{Red: 204, Green: 85, Blue: 0}})
 			})
+			m.Col(3, func() {
+				m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.NettPrice)), props.Text{Style: consts.Bold, Size: 9.5, Color: color.Color{Red: 204, Green: 85, Blue: 0}})
+			})
+		})
+
+		m.Row(5, func() {
 			m.Col(3, func() { m.Text("Down Payment:", labelProp) })
 			m.Col(3, func() { m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.DownPayment)), valueProp) })
-		})
-
-		m.Row(5, func() {
 			m.Col(3, func() { m.Text("Loan Amount:", labelProp) })
 			m.Col(3, func() { m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.LoanAmount)), valueProp) })
-			m.Col(3, func() { m.Text("Interest Rate:", labelProp) })
-			m.Col(3, func() { m.Text(fmt.Sprintf("%.2f%%", opt.InterestRate), valueProp) })
 		})
 
 		m.Row(5, func() {
-			m.Col(3, func() { m.Text("Est. Monthly Instalment:", labelProp) })
+			m.Col(3, func() { m.Text("Interest Rate (%):", labelProp) })
+			m.Col(3, func() { m.Text(fmt.Sprintf("%.2f%%", opt.InterestRate), valueProp) })
+			m.Col(3, func() { m.Text("Loan Tenure:", labelProp) })
+			m.Col(3, func() { m.Text(fmt.Sprintf("%d", opt.LoanTenureYear), valueProp) })
+		})
+
+		m.Row(5, func() {
+			m.Col(3, func() {
+				m.Text("Est. Monthly Instalment:", props.Text{Style: consts.Bold, Size: 9.5, Color: color.Color{Red: 204, Green: 85, Blue: 0}})
+			})
 			m.Col(9, func() {
-				m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.MonthlyInstalment)), valueProp)
+				m.Text(fmt.Sprintf("RM %s", formatCurrency(opt.MonthlyInstalment)), props.Text{Style: consts.Bold, Size: 9.5, Color: color.Color{Red: 204, Green: 85, Blue: 0}})
 			})
 		})
 
-		// --- FURNISHING CHECKLIST (Grid Layout) ---
-		m.Row(6, func() {
-			m.Col(12, func() { m.Text("Furnishing Checklist:", props.Text{Style: consts.Bold, Size: 9}) })
-		})
+		type BooleanItems struct {
+			Label string
+			Show  bool
+		}
 
-		// Row 1: Booleans
-		m.Row(5, func() {
-			m.Col(4, func() { m.Text(fmt.Sprintf("%s Kitchen Cabinet", checkBox(opt.Furnishing.KitchenCabinet)), valueProp) })
-			m.Col(4, func() { m.Text(fmt.Sprintf("%s Hood & Hob", checkBox(opt.Furnishing.HoodAndHob)), valueProp) })
-			m.Col(4, func() { m.Text(fmt.Sprintf("%s Fridge", checkBox(opt.Furnishing.Fridge)), valueProp) })
-		})
+		type QuantItems struct {
+			Label string
+			Count int
+		}
 
-		// Row 2: Booleans
-		m.Row(5, func() {
-			m.Col(4, func() { m.Text(fmt.Sprintf("%s Toilet Fittings", checkBox(opt.Furnishing.Toilet)), valueProp) })
-			m.Col(4, func() { m.Text(fmt.Sprintf("%s Water Heater", checkBox(opt.Furnishing.Heater)), valueProp) })
-			m.Col(4, func() { m.Text(fmt.Sprintf("%s Shower Screen", checkBox(opt.Furnishing.ShowerScreen)), valueProp) })
-		})
+		// Map your data to a slice of items
+		boolItems := []BooleanItems{
+			{Label: "Kitchen Cabinet", Show: opt.Furnishing.KitchenCabinet},
+			{Label: "Hood & Hob", Show: opt.Furnishing.HoodAndHob},
+			{Label: "Fridge", Show: opt.Furnishing.Fridge},
+			{Label: "Toilet Fittings", Show: opt.Furnishing.Toilet},
+			{Label: "Water Heater", Show: opt.Furnishing.Heater},
+			{Label: "Shower Screen", Show: opt.Furnishing.ShowerScreen},
+			{Label: "Bathroom Accessories", Show: opt.Furnishing.BathroomAccessories},
+			{Label: "Light Fixtures", Show: opt.Furnishing.LightFixtures},
+		}
 
-		// Row 3: Numeric Quantities
-		m.Row(5, func() {
-			m.Col(4, func() { m.Text(fmt.Sprintf("[%d]  Washing Machine", opt.Furnishing.WashingMachine), valueProp) })
-			m.Col(4, func() { m.Text(fmt.Sprintf("[%d]  Airconds", opt.Furnishing.Airconds), valueProp) })
-			m.Col(4, func() { m.Text(fmt.Sprintf("[%d]  Built-in Wardrobe", opt.Furnishing.WardrobeQty), valueProp) })
-		})
+		quantItems := []QuantItems{
+			{Label: "Washing Machine", Count: opt.Furnishing.WashingMachine},
+			{Label: "Aircond", Count: opt.Furnishing.Airconds},
+			{Label: "Wardrobe", Count: opt.Furnishing.WardrobeQty},
+			{Label: "Bed Set", Count: opt.Furnishing.BedSetQty},
+		}
 
-		// Row 4: Remaining Numeric
-		m.Row(5, func() {
-			m.Col(4, func() { m.Text(fmt.Sprintf("[%d]  Queen-size Bed", opt.Furnishing.BedSetQty), valueProp) })
-		})
+		// Filter out the items that are false or 0
+		var activeBoolItems []BooleanItems
+		for _, i := range boolItems {
+			if i.Show {
+				activeBoolItems = append(activeBoolItems, i)
+			}
+		}
+
+		var activeQuantItems []QuantItems
+		for _, i := range quantItems {
+			if i.Count > 0 {
+				activeQuantItems = append(activeQuantItems, i)
+			}
+		}
+
+		if len(activeBoolItems) != 0 && len(activeQuantItems) != 0 {
+			// --- FURNISHING CHECKLIST (Grid Layout) ---
+			m.Row(6, func() {
+				m.Col(12, func() { m.Text("Furnishing Checklist:", props.Text{Style: consts.Bold, Size: 9}) })
+			})
+		}
+
+		for i := 0; i < len(activeBoolItems); i += 3 {
+			m.Row(5, func() {
+				// Render up to 3 columns per row
+				for j := 0; j < 3 && (i+j) < len(activeBoolItems); j++ {
+					currentItem := activeBoolItems[i+j]
+					m.Col(4, func() {
+						// Since we only show 'true' items, we can hardcode the checkmark
+						// or keep the checkBox() helper if you prefer the visual style.
+						m.Text(fmt.Sprintf("%s %s", checkBox(true), currentItem.Label), valueProp)
+					})
+				}
+			})
+		}
+
+		for i := 0; i < len(activeQuantItems); i += 3 {
+			m.Row(5, func() {
+				// Render up to 3 columns per row
+				for j := 0; j < 3 && (i+j) < len(activeQuantItems); j++ {
+					currentItem := activeQuantItems[i+j]
+					m.Col(4, func() {
+						// Since we only show 'true' items, we can hardcode the checkmark
+						// or keep the checkBox() helper if you prefer the visual style.
+						m.Text(fmt.Sprintf("[%d] %s", currentItem.Count, currentItem.Label), valueProp)
+					})
+				}
+			})
+		}
 
 		// Row 5+: Iterate over the free-text "Additional" items dynamically
 		if len(opt.Furnishing.Additional) > 0 {
@@ -188,45 +262,75 @@ func generatePDFMaroto(quote models.PropertyQuotation) pdf.Maroto {
 
 	m.Row(5, func() {
 		m.Col(4, func() {
-			m.Text(fmt.Sprintf("Maintenance Fee: RM %s/psf", formatCurrency(quote.LegalAndFees.MaintenanceFeePSF)), valueProp)
+			m.Text("Maintenance Fee (per square feet):", labelProp)
 		})
-		m.Col(8, func() {
-			m.Text(fmt.Sprintf("Total Estimated: RM %s/month", formatCurrency(quote.LegalAndFees.MaintenanceFeeTotal)), valueProp)
+		m.Col(4, func() {
+			m.Text(fmt.Sprintf("RM %s/psf", formatCurrency(quote.LegalAndFees.MaintenanceFeePSF)), valueProp)
 		})
 	})
 
-	m.Row(2, func() {})
-
-	// 1. NCLUDED SECTION
-	// Header
-	m.Row(10, func() {
-		m.Col(12, func() { m.Text("Included:", labelProp) })
+	m.Row(5, func() {
+		m.Col(4, func() {
+			m.Col(4, func() {
+				m.Text("Total Maintenance Fee (per month):", labelProp)
+			})
+			m.Text(fmt.Sprintf("RM %s/month", formatCurrency(quote.LegalAndFees.MaintenanceFeeTotal)), valueProp)
+		})
 	})
 
-	// Bulleted List
-	for _, item := range quote.LegalAndFees.Included {
-		m.Row(6, func() {
-			m.Col(1, func() { m.Text("-", valueProp) })   // The bullet
-			m.Col(11, func() { m.Text(item, valueProp) }) // The text
+	m.Row(5, func() {
+		m.Col(4, func() {
+			m.Text("MOT Duty Stamp:", labelProp)
 		})
-	}
-
-	// Add a little vertical spacing between the two sections
-	m.Row(5, func() {})
-
-	// 2. NOT INCLUDED SECTION
-	// Header
-	m.Row(10, func() {
-		m.Col(12, func() { m.Text("Not Included:", labelProp) })
+		m.Col(4, func() {
+			m.Text(fmt.Sprintf("RM %s", formatCurrency(quote.LegalAndFees.MOT)), valueProp)
+		})
 	})
 
-	// Bulleted List
-	for _, item := range quote.LegalAndFees.NotIncluded {
-		m.Row(6, func() {
-			m.Col(1, func() { m.Text("-", valueProp) })   // The bullet
-			m.Col(11, func() { m.Text(item, valueProp) }) // The text
+	m.Row(5, func() {
+		m.Col(4, func() {
+			m.Text("SPA Legal Fee: ", labelProp)
 		})
-	}
+		m.Col(4, func() {
+			m.Text(fmt.Sprintf("%s", formatKey(quote.LegalAndFees.SPALegalFree)), valueProp)
+		})
+	})
+
+	m.Row(5, func() {
+		m.Col(4, func() {
+			m.Text("SPA Disbursement Fee: ", labelProp)
+		})
+		m.Col(4, func() {
+			m.Text(fmt.Sprintf("%s", formatKey(quote.LegalAndFees.SPADisbursementFree)), valueProp)
+		})
+	})
+
+	m.Row(5, func() {
+		m.Col(4, func() {
+			m.Text("Loan Agreement Fee: ", labelProp)
+		})
+		m.Col(4, func() {
+			m.Text(fmt.Sprintf("%s", formatKey(quote.LegalAndFees.LoanAgreementFree)), valueProp)
+		})
+	})
+
+	m.Row(5, func() {
+		m.Col(4, func() {
+			m.Text("Loan Disbursement Fee: ", labelProp)
+		})
+		m.Col(4, func() {
+			m.Text(fmt.Sprintf("%s", formatKey(quote.LegalAndFees.LoanDisbursementFree)), valueProp)
+		})
+	})
+
+	m.Row(5, func() {
+		m.Col(4, func() {
+			m.Text("Loan Stamp Duty Fee: ", labelProp)
+		})
+		m.Col(4, func() {
+			m.Text(fmt.Sprintf("%s", formatKey(quote.LegalAndFees.LoanStampDutyFree)), valueProp)
+		})
+	})
 
 	// --- AGENT SIGNATURE (FOOTER) ---
 	m.Row(30, func() {

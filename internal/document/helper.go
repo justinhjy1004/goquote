@@ -119,3 +119,17 @@ func formatInteger(num int) string {
 
 	return sign + formatIntegerPart(s)
 }
+
+func formatKey(s string) string {
+
+	spaced := strings.ReplaceAll(s, "_", " ")
+
+	words := strings.Fields(spaced)
+	for i, word := range words {
+		if len(word) > 0 {
+			words[i] = strings.ToUpper(word[:1]) + strings.ToLower(word[1:])
+		}
+	}
+
+	return strings.Join(words, " ")
+}

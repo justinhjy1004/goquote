@@ -14,8 +14,9 @@ type PropertyQuotation struct {
 }
 
 type Lead struct {
-	Name    string `json:"name"`
-	Contact string `json:"contact"`
+	Name        string `json:"name"`
+	Contact     string `json:"contact"`
+	Citizenship string `json:"citizenship"` // NOTE: Added field to match JSON
 }
 
 type Project struct {
@@ -27,45 +28,57 @@ type Project struct {
 	LayoutType  string  `json:"layout_type"`
 	AreaSqft    int     `json:"area_sqft"`
 	SPAPrice    float64 `json:"spa_price"`
+	CarParkLot  string  `json:"car_park_lot"`
 }
 
 type Option struct {
 	OptionName        string     `json:"option_name"`
-	Rebate            float64    `json:"rebate"`
+	Rebate            float64    `json:"rebate"` // Rebate Amount
+	RebatePercentage  float64    `json:"rebate_percentage"`
 	Discounts         []Discount `json:"other_discounts"` // For "add different type of discount"
 	Cashback          float64    `json:"cashback"`
+	CashbackType      string     `json:"cashback_type"` // "Cash Out" or "Offset to Loan"
 	DownPayment       float64    `json:"down_payment"`
 	NettPrice         float64    `json:"nett_price"`
 	LoanAmount        float64    `json:"loan_amount"`
 	InterestRate      float64    `json:"interest_rate"` // e.g., 4.25
 	MonthlyInstalment float64    `json:"monthly_instalment"`
+	LoanTenureYear    int        `json:"loan_tenure_year"`
 	Furnishing        Furnishing `json:"furnishing"`
 }
 
 type Discount struct {
-	Type   string  `json:"type"`
-	Amount float64 `json:"amount"`
+	Type       string  `json:"type"`
+	Percentage float64 `json:"amount"`
 }
 
 type Furnishing struct {
-	KitchenCabinet bool     `json:"kitchen_cabinet"`
-	HoodAndHob     bool     `json:"hood_and_hob"`
-	Fridge         bool     `json:"fridge"`
-	WashingMachine int      `json:"washing_machine_qty"`
-	Airconds       int      `json:"airconds_qty"`
-	Toilet         bool     `json:"toilet"`
-	Heater         bool     `json:"heater"`
-	ShowerScreen   bool     `json:"shower_screen"`
-	WardrobeQty    int      `json:"wardrobe_qty"`
-	BedSetQty      int      `json:"bed_set_qty"`
-	Additional     []string `json:"additional_items"` // Free text for agent input
+	KitchenCabinet      bool     `json:"kitchen_cabinet"`
+	HoodAndHob          bool     `json:"hood_and_hob"`
+	Fridge              bool     `json:"fridge"`
+	WashingMachine      int      `json:"washing_machine_qty"`
+	Airconds            int      `json:"airconds_qty"`
+	Toilet              bool     `json:"toilet"`
+	Heater              bool     `json:"heater"`
+	ShowerScreen        bool     `json:"shower_screen"`
+	WardrobeQty         int      `json:"wardrobe_qty"`
+	BedSetQty           int      `json:"bed_set_qty"`
+	Additional          []string `json:"additional_items"` // Free text for agent input
+	BathroomAccessories bool     `json:"bathroom_accessories"`
+	LightFixtures       bool     `json:"light_fixtures"`
 }
 
 type LegalFees struct {
-	MaintenanceFeePSF   float64  `json:"maintenance_fee_psf"`
-	MaintenanceFeeTotal float64  `json:"maintenance_fee_total"`
-	Included            []string `json:"included"` // e.g., ["SPA Legal Fee", "MOT"]
-	NotIncluded         []string `json:"not_included"`
+	MaintenanceFeePSF    float64  `json:"maintenance_fee_psf"`
+	MaintenanceFeeTotal  float64  `json:"maintenance_fee_total"`
+	Included             []string `json:"included"` // e.g., ["SPA Legal Fee", "MOT"]
+	NotIncluded          []string `json:"not_included"`
+	MOT                  float64  `json:"mot"`
+	SPALegalFree         string   `json:"spa_legal"`
+	SPADisbursementFree  string   `json:"spa_disbursement"`
+	LoanAgreementFree    string   `json:"loan_agreement"`
+	LoanDisbursementFree string   `json:"loan_disbursement"`
+	LoanStampDutyFree    string   `json:"loan_stamp_duty"`
 }
 
 type Agent struct {

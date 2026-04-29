@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const LeadSchema = z.object({
   name: z.string(),
   contact: z.string(),
+  citizenship: z.string(),
 })
 export type Lead = z.infer<typeof LeadSchema>
 
@@ -15,6 +16,7 @@ export const ProjectSchema = z.object({
   layout_type: z.string(),
   area_sqft: z.number(),
   spa_price: z.number(),
+  car_park_lot: z.string(),
 })
 export type Project = z.infer<typeof ProjectSchema>
 
@@ -36,19 +38,24 @@ export const FurnishingSchema = z.object({
   wardrobe_qty: z.number(),
   bed_set_qty: z.number(),
   additional_items: z.string().array().nullable(),
+  bathroom_accessories: z.boolean(),
+  light_fixtures: z.boolean(),
 })
 export type Furnishing = z.infer<typeof FurnishingSchema>
 
 export const OptionSchema = z.object({
   option_name: z.string(),
   rebate: z.number(),
+  rebate_percentage: z.number(),
   other_discounts: DiscountSchema.array().nullable(),
   cashback: z.number(),
+  cashback_type: z.string(),
   down_payment: z.number(),
   nett_price: z.number(),
   loan_amount: z.number(),
   interest_rate: z.number(),
   monthly_instalment: z.number(),
+  loan_tenure_year: z.number(),
   furnishing: FurnishingSchema,
 })
 export type Option = z.infer<typeof OptionSchema>
@@ -58,6 +65,12 @@ export const LegalFeesSchema = z.object({
   maintenance_fee_total: z.number(),
   included: z.string().array().nullable(),
   not_included: z.string().array().nullable(),
+  mot: z.number(),
+  spa_legal: z.string(),
+  spa_disbursement: z.string(),
+  loan_agreement: z.string(),
+  loan_disbursement: z.string(),
+  loan_stamp_duty: z.string(),
 })
 export type LegalFees = z.infer<typeof LegalFeesSchema>
 

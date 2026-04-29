@@ -72,6 +72,11 @@ func generatePropertyDetails(m pdf.Maroto, quote models.PropertyQuotation, style
 	})
 
 	m.Row(5, func() {
+		m.Col(3, func() { m.Text("Car Park Lot:", styles.labelProp) })
+		m.Col(3, func() { m.Text(quote.ProjectDetails.CarParkLot, styles.valueProp) })
+	})
+
+	m.Row(5, func() {
 		m.Col(3, func() { m.Text("Layout Type:", styles.labelProp) })
 		m.Col(3, func() { m.Text(quote.ProjectDetails.LayoutType, styles.valueProp) })
 	})
@@ -83,12 +88,14 @@ func generatePropertyDetails(m pdf.Maroto, quote models.PropertyQuotation, style
 
 	m.Row(5, func() {
 		m.Col(3, func() { m.Text("SPA Price:", styles.labelProp) })
-		m.Col(3, func() { m.Text(fmt.Sprintf("RM %.2f", quote.ProjectDetails.SPAPrice), styles.valueProp) })
+		m.Col(3, func() {
+			m.Text(fmt.Sprintf("RM %s", formatCurrency(quote.ProjectDetails.SPAPrice)), styles.valueProp)
+		})
 	})
 
 	m.Row(5, func() {
 		m.Col(3, func() { m.Text("Facing:", styles.labelProp) })
-		m.Col(3, func() { m.Text(fmt.Sprintf("RM %s", formatCurrency(quote.ProjectDetails.SPAPrice)), styles.valueProp) })
+		m.Col(3, func() { m.Text(fmt.Sprintf("%s", quote.ProjectDetails.Facing), styles.valueProp) })
 	})
 
 	m.Row(5, func() {
