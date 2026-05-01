@@ -193,7 +193,7 @@ func generatePDFMaroto(quote models.PropertyQuotation) pdf.Maroto {
 			}
 		}
 
-		if len(activeBoolItems) != 0 && len(activeQuantItems) != 0 {
+		if len(activeBoolItems)+len(activeQuantItems) != 0 {
 			// --- FURNISHING CHECKLIST (Grid Layout) ---
 			m.Row(6, func() {
 				m.Col(12, func() { m.Text("Furnishing Checklist:", props.Text{Style: consts.Bold, Size: 9}) })

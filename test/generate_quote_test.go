@@ -224,7 +224,7 @@ func TestGenerateQuotationMinimumDataPDF(t *testing.T) {
 				Discounts:         []models.Discount{}, // Empty discounts
 				Furnishing: models.Furnishing{
 					// All false / 0 / empty
-					KitchenCabinet:      false,
+					KitchenCabinet:      true,
 					HoodAndHob:          false,
 					Fridge:              false,
 					WashingMachine:      0,
