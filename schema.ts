@@ -22,7 +22,7 @@ export type Project = z.infer<typeof ProjectSchema>
 
 export const DiscountSchema = z.object({
   type: z.string(),
-  amount: z.number(),
+  percentage: z.number(),
 })
 export type Discount = z.infer<typeof DiscountSchema>
 
@@ -45,7 +45,7 @@ export type Furnishing = z.infer<typeof FurnishingSchema>
 
 export const OptionSchema = z.object({
   option_name: z.string(),
-  rebate: z.number(),
+  rebate_amount: z.number(),
   rebate_percentage: z.number(),
   other_discounts: DiscountSchema.array().nullable(),
   cashback: z.number(),

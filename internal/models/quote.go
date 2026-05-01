@@ -33,7 +33,7 @@ type Project struct {
 
 type Option struct {
 	OptionName        string     `json:"option_name"`
-	Rebate            float64    `json:"rebate"` // Rebate Amount
+	Rebate            float64    `json:"rebate_amount"` // Rebate Amount
 	RebatePercentage  float64    `json:"rebate_percentage"`
 	Discounts         []Discount `json:"other_discounts"` // For "add different type of discount"
 	Cashback          float64    `json:"cashback"`
@@ -49,7 +49,7 @@ type Option struct {
 
 type Discount struct {
 	Type       string  `json:"type"`
-	Percentage float64 `json:"amount"`
+	Percentage float64 `json:"percentage"`
 }
 
 type Furnishing struct {
